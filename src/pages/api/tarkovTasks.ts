@@ -1,51 +1,23 @@
-// src/pages/api/tarkovTasks.ts
 import { NextApiRequest, NextApiResponse } from "next";
+import fs from "fs";
+import path from "path";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // GETメソッドのみ許可する
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   try {
-    const response = await fetch("https://tarkov.dev/api/graphql", {
-      method: "POST", // GraphQL のリクエストは POST メソッドを使用
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: `{
-          tasks {
-            id
-            name
-            trader {
-              name
-            }
-            minPlayerLevel
-            objectives {
-              description
-            }
-            taskRequirements {
-              taskIds
-            }
-          }
-        }`,
-      }),
-    });
+    // JSONファイルのパス
+    const filePath = path.join(process.cwd(), "src/data/tarkovTasks.json");
 
-    if (!response.ok) {
-      throw new Error(`GraphQL request failed: ${response.statusText}`);
-    }
+    // JSONファイルを読み込む
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    const tasks = JSON.parse(jsonData);
 
-    const data = await response.json();
-    res.status(200).json(data);
-} catch (error) {
-    if (error instanceof Error) {
-      console.error("API Error:", error.message);
-      res.status(500).json({ error: "Failed to fetch tasks", details: error.message });
-    } else {
-      console.error("Unknown error:", error);
-      res.status(500).json({ error: "An unknown error occurred" });
-    }
+    res.status(200).json(tasks);
+  } catch (error) {
+    console.error("タスクデータの読み込みに失敗:", error);
+    res.status(500).json({ error: "Failed to load tasks" });
   }
 }

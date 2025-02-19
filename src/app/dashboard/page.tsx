@@ -1,8 +1,7 @@
 "use client";
 import { useAuth } from "@/lib/useAuth";
-import { fetchTarkovTasks } from "@/lib/api/tarkovTasks";
-import { updatePlayerLevel } from "@/lib/api/playerLevel";
 import { useState, useEffect } from "react";
+import { getPlayerLevel, updatePlayerLevel } from "@/lib/api/playerLevel";
 
 interface Task {
   id: string;
@@ -10,7 +9,6 @@ interface Task {
   trader?: { name: string };
   minPlayerLevel: number;
   objectives: { description: string }[];
-  requirements?: { taskIds: string[] };
 }
 
 export default function Dashboard() {
@@ -20,20 +18,37 @@ export default function Dashboard() {
   const [newLevel, setNewLevel] = useState(level);
 
   useEffect(() => {
-    const loadTasks = async () => {
-      if (!user) return;
+    if (!user) return;
+
+    const fetchPlayerLevel = async () => {
       try {
-        const fetchedTasks = await fetchTarkovTasks();
-        setTasks(fetchedTasks);
+        const fetchedLevel = await getPlayerLevel(user.id);
+        setLevel(fetchedLevel);
       } catch (error) {
-        console.error("タスクの取得に失敗しました: ", error);
+        console.error("プレイヤーレベルの取得に失敗:", error);
+      }
+    };
+
+    fetchPlayerLevel();
+  }, [user, setLevel]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/tarkovTasks");
+        if (!response.ok) throw new Error("タスクの取得に失敗しました");
+
+        const data: Task[] = await response.json();
+        setTasks(data);
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadTasks();
-  }, [user]);
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     setNewLevel(level);
@@ -47,13 +62,23 @@ export default function Dashboard() {
   };
 
   const handleSaveLevel = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error("❌ ユーザーが未ログイン");
+      return;
+    }
+  
+    console.log("🔄 レベル保存処理開始: ", { userId: user.id, newLevel });
+  
     try {
       await updatePlayerLevel(user.id, newLevel);
-      setLevel(newLevel);
-      console.log("プレイヤーレベルが更新されました！");
+      
+      // もう一度レベルを取得して更新確認
+      const updatedLevel = await getPlayerLevel(user.id);
+      setLevel(updatedLevel);
+  
+      console.log("✅ プレイヤーレベルが更新されました！", updatedLevel);
     } catch (error) {
-      console.error("レベル更新エラー:", error);
+      console.error("❌ レベル更新エラー:", error);
     }
   };
 
@@ -63,18 +88,16 @@ export default function Dashboard() {
     <div className="p-6 bg-gray-900 min-h-screen text-white flex flex-col items-center">
       <header className="w-full max-w-2xl flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">ようこそ, {user.email}</h2>
-        <button
-          onClick={logout}
-          className="bg-red-500 px-5 py-2 rounded-lg text-lg font-semibold hover:bg-red-600 transition-all"
-        >
+        <button onClick={logout} className="bg-red-500 px-5 py-2 rounded-lg text-lg font-semibold hover:bg-red-600 transition-all">
           ログアウト
         </button>
       </header>
 
+      {/* プレイヤーレベル管理 */}
       <div className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg text-center">
         <h3 className="text-xl font-semibold mb-4">プレイヤーレベル</h3>
         <div className="text-4xl font-bold mb-4 text-blue-400">Lv. {level}</div>
-
+        
         <input
           type="number"
           value={newLevel}
@@ -83,7 +106,7 @@ export default function Dashboard() {
           max={100}
           className="p-2 text-xl text-center rounded bg-gray-700 border border-gray-600 w-full max-w-xs focus:ring focus:ring-blue-400"
         />
-
+        
         <button
           onClick={handleSaveLevel}
           className="mt-4 bg-blue-500 px-6 py-2 rounded-lg text-lg font-semibold hover:bg-blue-600 transition-all"
@@ -92,6 +115,7 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {/* タスク一覧 */}
       <div className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg text-center mt-6">
         <h3 className="text-xl font-semibold mb-4">タスク一覧</h3>
         {loading ? (

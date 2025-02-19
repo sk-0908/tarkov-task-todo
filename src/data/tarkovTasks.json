@@ -1,0 +1,23 @@
+[
+    {
+      "id": "task1",
+      "name": "カスタムで Scav 5体キル",
+      "trader": { "name": "Prapor" },
+      "minPlayerLevel": 5,
+      "objectives": [
+        { "description": "カスタムで Scav 5体を倒す" }
+      ],
+      "requirements": { "taskIds": [] }
+    },
+    {
+      "id": "task2",
+      "name": "Factoryで PMC 3体キル",
+      "trader": { "name": "Skier" },
+      "minPlayerLevel": 10,
+      "objectives": [
+        { "description": "Factoryで PMC 3体を倒す" }
+      ],
+      "requirements": { "taskIds": ["task1"] }
+    }
+  ]
+  

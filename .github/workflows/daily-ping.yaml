@@ -1,7 +1,8 @@
-name: Prevent Supabase Sleep
+name: Prevent Supabase Sleep (Daily Ping)
 
 on:
-  schedule
+  schedule:
+    # UTC 01:15 AM に実行 (JST 10:15 AM)
     - cron: "15 1 * * *"
   workflow_dispatch:
 
@@ -14,8 +15,8 @@ jobs:
     steps:
       - name: Send HTTP GET request
         run: |
-          curl -X GET "https://tarkov-task-todo.vercel.app/dashboard" -v --fail || exit 1
-        
+          curl -X GET "https://next-blog-app-demo.vercel.app/" -v --fail || exit 1
+
       - name: Log request time
         run: |
           echo "Keep-alive ping completed at $(date)"

@@ -1,54 +1,35 @@
 "use client";
-import { useAuth } from "@/lib/useAuth";
-import { useState, useEffect } from "react";
-import { getPlayerLevel, updatePlayerLevel } from "@/lib/api/playerLevel";
 
-interface Task {
-  id: string;
-  name: string;
-  trader?: { name: string };
-  minPlayerLevel: number;
-  objectives: { description: string }[];
-}
+import { useAuth } from "@/lib/useAuth";
+import { updatePlayerLevel } from "@/lib/api/playerLevel";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { fetchUserTasks } from "@/lib/api/taskApi";
+import { Task } from "@/types/task";
+import Link from "next/link";
 
 export default function Dashboard() {
   const { user, level, setLevel, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLevel, setNewLevel] = useState(level);
+  const router = useRouter();
 
   useEffect(() => {
+  const loadTasks = async () => {
     if (!user) return;
+    try {
+      const fetchedTasks = await fetchUserTasks(user.id);
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error("❌ タスクの取得に失敗しました:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchPlayerLevel = async () => {
-      try {
-        const fetchedLevel = await getPlayerLevel(user.id);
-        setLevel(fetchedLevel);
-      } catch (error) {
-        console.error("プレイヤーレベルの取得に失敗:", error);
-      }
-    };
-
-    fetchPlayerLevel();
-  }, [user, setLevel]);
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await fetch("/api/tarkovTasks");
-        if (!response.ok) throw new Error("タスクの取得に失敗しました");
-
-        const data: Task[] = await response.json();
-        setTasks(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
+  loadTasks();
+}, [user]);
 
   useEffect(() => {
     setNewLevel(level);
@@ -62,23 +43,13 @@ export default function Dashboard() {
   };
 
   const handleSaveLevel = async () => {
-    if (!user) {
-      console.error("❌ ユーザーが未ログイン");
-      return;
-    }
-  
-    console.log("🔄 レベル保存処理開始: ", { userId: user.id, newLevel });
-  
+    if (!user) return;
     try {
       await updatePlayerLevel(user.id, newLevel);
-      
-      // もう一度レベルを取得して更新確認
-      const updatedLevel = await getPlayerLevel(user.id);
-      setLevel(updatedLevel);
-  
-      console.log("✅ プレイヤーレベルが更新されました！", updatedLevel);
+      setLevel(newLevel);
+      console.log("✅ プレイヤーレベルが更新されました！", newLevel);
     } catch (error) {
-      console.error("❌ レベル更新エラー:", error);
+      console.error("レベル更新エラー:", error);
     }
   };
 
@@ -115,6 +86,14 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {/* タスク追加ページへ遷移するボタン */}
+      <button
+        onClick={() => router.push("/add-task")}
+        className="mt-6 bg-green-500 px-6 py-2 rounded-lg text-lg font-semibold hover:bg-green-600 transition-all"
+      >
+        タスクを追加する
+      </button>
+
       {/* タスク一覧 */}
       <div className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg text-center mt-6">
         <h3 className="text-xl font-semibold mb-4">タスク一覧</h3>
@@ -126,11 +105,13 @@ export default function Dashboard() {
               <p className="text-gray-400">表示するタスクがありません。</p>
             ) : (
               tasks.map((task: Task) => (
-                <li key={task.id} className={`bg-gray-700 p-4 rounded-lg shadow-md ${level < task.minPlayerLevel ? 'opacity-50' : ''}`}>
-                  <h4 className="text-lg font-bold">{task.name}</h4>
-                  <p className="text-sm text-gray-400">トレーダー: {task.trader?.name || "不明"}</p>
-                  <p className="text-sm">最低レベル: {task.minPlayerLevel}</p>
-                </li>
+                <li key={task.id} className={`bg-gray-700 p-4 rounded-lg shadow-md ${level < task.min_level ? "opacity-50" : ""}`}>
+    <Link href={`/task/${task.id}`} className="block text-lg font-bold hover:underline">
+      {task.name}
+    </Link>
+    <p className="text-sm text-gray-400">トレーダー: {task.trader || "不明"}</p>
+    <p className="text-sm">最低レベル: {task.min_level}</p>
+  </li>
               ))
             )}
           </ul>

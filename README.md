@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Escape from Tarkov タスク管理アプリ
+https://tarkov-task-todo.vercel.app/
+## はじめに
+### Escape from Tarkovとは
+『Escape from Tarkov』（以下、Tarkov）は、FPSとRPG要素を融合させたリアル志向のシューティングゲーム。このWebアプリは、Tarkovのタスク（ミッション）を管理することを目的としており、ユーザが進捗状況や目標達成度を一目で把握できるように設計した。
 
-## Getting Started
+### 背景と開発経緯
+当初は[TarkovAPI](https://tarkov.dev/api?lng=ja)を利用してタスク情報を自動取得し、表示する仕組みを実装する予定であった。しかし、個人の技術レベルが足りないことや時間的な制約も相まって現状の手動タスク管理アプリとしての形に落ち着いた。
 
-First, run the development server:
+## プロジェクト概要
+このプロジェクトは、Tarkovのタスクを効率的に管理するためのWebアプリです。ユーザはタスクの追加、編集、削除を操作でき、各タスクの進捗状況やプレイヤーレベルに応じたタスクの表示制御が可能。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 主な機能
+- ユーザー認証
+Supabaseを利用したメールアドレスを用いたログイン・ログアウト機能による、セキュアなユーザー管理
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 実際に動かす
+### 1.ログイン・新規登録
+https://tarkov-task-todo.vercel.app/にログインしていない時にアクセスするとhttps://tarkov-task-todo.vercel.app/authにリダイレクトされます。
+![/authの画面](img/image.png)
+フォームに登録されていないメールアドレスとパスワードを入れるとSupabaseに保存されてログインできます。二回目以降はそのままメールアドレスとパスワードを入れるとログインできます。
+### 2.ダッシュボード
+ログインすると以下の画面（/dashboard）に遷移します。
+![alt text](img/image01.png)
+#### プレイヤーレベルの管理:
+現在のレベルを表示
+数値を変更し「レベル更新」ボタンを押すことで、レベルを更新
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### タスク一覧の表示:
+自身のタスクを確認可能
+必要レベルが達していないタスクは薄く表示
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### タスクの管理:
+「タスクを追加する」ボタンで新しいタスクを登録可能
+各タスクの詳細を開き、内容の編集や削除が可能
+![alt text](img/image02.png)
+#### 完了タスクの表示/非表示:
+トグルボタンで完了済みのタスクを非表示にする機能
+- **タスク管理**
 
-## Learn More
+    - タスクの追加、編集、削除機能
+    - タスクの詳細表示（説明、期限、進捗状況など）
+    - 各目標の達成状況の管理と更新
+    - 完了タスクの表示・非表示切替機能
+- **プレイヤーレベル管理**
 
-To learn more about Next.js, take a look at the following resources:
+    - ユーザーがレベルを手動で更新可能
+    - レベルに応じたタスク表示の自動制御
+- **データ同期**
+    - Supabaseとの連携によるクラウド上でのタスク情報管理
+    - 複数デバイス間でのデータ一貫性の確保
+## 技術スタック
+フロントエンド: Next.js, TypeScript, Tailwind CSS
+バックエンド: Supabase（PostgreSQL, Auth, Storage）
+デプロイ: Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 今後の改善予定と拡張機能
+前述のTarkovAPIを利用してタスクの自動取得
+タスク並び替えおよび検索機能: トレーダーやレベルでの並び替えを用いてユーザが目的のタスクを素早く見つけられるよう改善
+Tarkov Wikiとの連携: アイテムの情報やタスク詳細をそのままリンクする
+## 開発を通じて学んだこと
+本アプリの開発では、Next.jsを用いたフロントエンド開発、TypeScriptによる型安全なコード設計、そしてSupabaseを使ったクラウドデータ管理の基礎を実践的に学ぶことができた。
+## ライセンス
+MIT License

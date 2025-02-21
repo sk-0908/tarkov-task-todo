@@ -1,35 +1,36 @@
 "use client";
 
 import { useAuth } from "@/lib/useAuth";
-import { updatePlayerLevel } from "@/lib/api/playerLevel";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchUserTasks } from "@/lib/api/taskApi";
+import { updatePlayerLevel } from "@/lib/api/playerLevel";
 import { Task } from "@/types/task";
-import Link from "next/link";
 
 export default function Dashboard() {
   const { user, level, setLevel, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLevel, setNewLevel] = useState(level);
+  const [showCompleted, setShowCompleted] = useState(false); // ✅ 完了タスクの表示/非表示トグル
   const router = useRouter();
 
   useEffect(() => {
-  const loadTasks = async () => {
     if (!user) return;
-    try {
-      const fetchedTasks = await fetchUserTasks(user.id);
-      setTasks(fetchedTasks);
-    } catch (error) {
-      console.error("❌ タスクの取得に失敗しました:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  loadTasks();
-}, [user]);
+    const loadTasks = async () => {
+      try {
+        const fetchedTasks = await fetchUserTasks(user.id);
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("❌ タスクの取得に失敗しました:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, [user]);
 
   useEffect(() => {
     setNewLevel(level);
@@ -94,6 +95,17 @@ export default function Dashboard() {
         タスクを追加する
       </button>
 
+      {/* 完了タスクの表示/非表示トグル */}
+      <div className="mt-4 flex items-center">
+        <input
+          type="checkbox"
+          checked={showCompleted}
+          onChange={() => setShowCompleted(!showCompleted)}
+          className="w-5 h-5 mr-2 cursor-pointer"
+        />
+        <label className="text-lg cursor-pointer">完了したタスクを表示</label>
+      </div>
+
       {/* タスク一覧 */}
       <div className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg text-center mt-6">
         <h3 className="text-xl font-semibold mb-4">タスク一覧</h3>
@@ -101,18 +113,20 @@ export default function Dashboard() {
           <p>タスクを読み込み中...</p>
         ) : (
           <ul className="space-y-4">
-            {tasks.length === 0 ? (
+            {tasks.filter(task => showCompleted || !task.completed).length === 0 ? (
               <p className="text-gray-400">表示するタスクがありません。</p>
             ) : (
-              tasks.map((task: Task) => (
-                <li key={task.id} className={`bg-gray-700 p-4 rounded-lg shadow-md ${level < task.min_level ? "opacity-50" : ""}`}>
-    <Link href={`/task/${task.id}`} className="block text-lg font-bold hover:underline">
-      {task.name}
-    </Link>
-    <p className="text-sm text-gray-400">トレーダー: {task.trader || "不明"}</p>
-    <p className="text-sm">最低レベル: {task.min_level}</p>
-  </li>
-              ))
+              tasks
+                .filter(task => showCompleted || !task.completed)
+                .map((task: Task) => (
+                  <li key={task.id} className={`bg-gray-700 p-4 rounded-lg shadow-md ${level < task.min_level ? 'opacity-50' : ''}`}>
+                    <h4 className="text-lg font-bold cursor-pointer hover:underline" onClick={() => router.push(`/task/${task.id}`)}>
+                      {task.name}
+                    </h4>
+                    <p className="text-sm text-gray-400">トレーダー: {task.trader || "不明"}</p>
+                    <p className="text-sm">最低レベル: {task.min_level}</p>
+                  </li>
+                ))
             )}
           </ul>
         )}

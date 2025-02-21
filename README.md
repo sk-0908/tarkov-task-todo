@@ -1,5 +1,6 @@
 # Escape from Tarkov タスク管理アプリ
 https://tarkov-task-todo.vercel.app/
+2025/2作成。
 ## はじめに
 ### Escape from Tarkovとは
 『Escape from Tarkov』（以下、Tarkov）は、FPSとRPG要素を融合させたリアル志向のシューティングゲーム。このWebアプリは、Tarkovのタスク（ミッション）を管理することを目的としており、ユーザが進捗状況や目標達成度を一目で把握できるように設計した。

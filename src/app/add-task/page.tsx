@@ -31,7 +31,13 @@ export default function AddTaskPage() {
       name: taskName,
       trader: trader || null,
       min_level: min_level,
-      objectives: objectives.filter(obj => obj.trim() !== ""),
+      completed: false,
+      objectives: objectives
+        .filter((obj) => obj.trim() !== "")
+        .map((description) => ({
+          description,
+          completed: false,
+        })),
     };
 
     try {
@@ -47,7 +53,10 @@ export default function AddTaskPage() {
     <div className="p-6 bg-gray-900 min-h-screen text-white flex flex-col items-center">
       <h2 className="text-2xl font-bold mb-6">タスクを追加</h2>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-lg bg-gray-800 p-4 rounded-lg shadow-lg space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-lg bg-gray-800 p-4 rounded-lg shadow-lg space-y-4"
+      >
         <div>
           <label className="block text-sm font-medium mb-1">タスク名</label>
           <input
